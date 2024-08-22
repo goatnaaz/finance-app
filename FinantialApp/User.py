@@ -3,16 +3,12 @@ from Expences import Expences
 
 class User (Expences):
     
-
-    
     __id= 0
     __chat_id= 0
     __total_amount_in_defauld_currency= 0
     __transactions= [] 
     
-    def __init__(self) -> None:
-        super().__init__()
-
+    
 
     def get_id(self):
         return self.__id
