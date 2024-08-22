@@ -4,10 +4,6 @@ from telegram import Update,ReplyKeyboardMarkup
 class Expences (UserTr):
     __expences= []
     __reasons= []
-    
-
-
-    
 
     def set_expences(self,num):
         self.__expences.append(num)
