@@ -8,6 +8,7 @@ class User ():
     __id= 0
     __chat_id= 0
     __total_amount_in_defauld_currency= 0
+    __user_transactions = []
     
 
 
@@ -30,3 +31,9 @@ class User ():
 
     def get_total(self):
         return self.__total_amount_in_defauld_currency
+
+    def add_user_tr(self,UserTr):
+        self.__user_transactions.append(UserTr)
+
+    def get_user_tr(self):
+        return self.__user_transactions
