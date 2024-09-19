@@ -1,4 +1,4 @@
-import random
+from Entities.Exchange import Exchange
 
 
 class UserTr():
@@ -8,21 +8,23 @@ class UserTr():
     __amount= 0
     __currency= ''
     __actual_amount= 0
-    __transactions= [] 
+    
     __expences= []
     __reasons= []
 
-    # Курс валют по отношению к доллару
-    exchange_rates = {
-    'usd': 1.0,  # курс доллара к доллару
-    'eur': 1.1,  # курс евро к доллару (примерный)
-    'grn': 0.027, # курс гривны к доллару (примерный)
-    'ron': 0.22   # курс румынского лея к доллару (примерный)
-    }
+    
+    _exchange_rates= [Exchange('usd',1.0),Exchange('eur',1.1),Exchange('uah',0.027),Exchange('ron',0.22)]
+   
 
-    def get_exchange(self):
-        return self.exchange_rates
+    def is_in_exchange_rates(self,exchange_name):
 
+        for i in self._exchange_rates:
+            if i.get_name() == exchange_name:
+                return  True
+        else:
+            return False
+
+    
     def set_amount(self,amount):
         self.__amount= amount
 
@@ -52,20 +54,18 @@ class UserTr():
     
     def get_reason(self,num):
         return self.__reasons[num]
-    
-    def set_transaction(self,transaction):
-        self.__transactions.append(transaction)
-
-    def get_transactions(self):
-        return self.__transactions
 
     def get_actual_amount(self):
         return self.__actual_amount
     
     def create_actual_amount(self,currency,amount):
-        self.set_currency(currency)
-        self.set_amount(amount)
-        self.__actual_amount= self.get_amount() * self.exchange_rates[currency.lower()]
+        self.__currency= currency
+        self.__amount= amount
+
+        for i in self._exchange_rates:
+            if i.get_name() == currency:
+                self.__actual_amount= self.__amount * i.get_value()
+        
 
 
 
