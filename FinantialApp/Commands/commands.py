@@ -10,24 +10,20 @@ from Commands.TransactionHandler import TransactionHandler
 #класс комманд для телеграм бота
 class Commands():
 
-    user_tr= object()
-    user= object()
-
+    
     reply_keyboard = [
     ["/balance", "/deposit"],
     ["/spend", "/spendings"],
     ]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
+
+    _users= []
  
     
     #  Команда /start для преведствования пользователя и ознакомления с функционалом
     async def start(self,update:Update, context:ContextTypes.DEFAULT_TYPE) -> None:
 
-        self.user_tr= UserTr()
-        self.user= User()
-
-        self.user.set_chat_id(update.message.chat_id)
-
+    
         await update.message.reply_text('''Hi! Welcome to the Finance helper telegram bot and thats what i can do:
 
     Press /balance to see how much money you got on you right now
@@ -39,6 +35,7 @@ class Commands():
     Press /spendings to see all of your expences 
                                         
     Use me and enjoy it ''',reply_markup=self.markup)
+        
 
     # Команда /deposit - пополнение счета
     async def deposit(self,update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -50,37 +47,65 @@ class Commands():
 
     # Обработчик сообщений (для пополнения счета или расходов)
     async def handle_message(self,update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+
+        user= None
+
+        if self._users:
+            for i in self._users:
+                if i.get_chat_id() == update.message.chat_id:
+                    user= i
+                else:
+                    user= User()
+            user.set_chat_id(update.message.chat_id)
+            self._users.append(user)
+        else:
+            user= User()
+            user.set_chat_id(update.message.chat_id)
+            self._users.append(user)
+
         text = update.message.text.split()
 
         if len(text) == TransactionHandler.DEPOSIT.value:  # Пополнение счета
-
+            
+            user_tr= UserTr()
             amount_str, currency = text
 
-            if amount_str.isdigit() and currency.lower() in self.user_tr.get_exchange():
+            if amount_str.isdigit() and user_tr.is_in_exchange_rates(currency.lower()):
 
-                self.user_tr.create_actual_amount(currency,float(amount_str))
-                self.user.add(self.user_tr)
+                
 
-                await update.message.reply_text(f"{self.user_tr.get_amount()} {self.user_tr.get_currency()} конвертировано и добавлено на ваш счет как {self.user_tr.get_actual_amount():.2f} USD!")
+                user_tr.create_actual_amount(currency,float(amount_str))
+                user.add(user_tr)
+                user.add_user_tr(user_tr)
+
+
+
+                await update.message.reply_text(f"{user_tr.get_amount()} {user_tr.get_currency()} конвертировано и добавлено на ваш счет как {user_tr.get_actual_amount():.2f} USD!")
             else:
+                await update.message.reply_text(currency.lower())
+                await update.message.reply_text(user_tr.is_in_exchange_rates(currency.lower))
                 await update.message.reply_text("Неправильный ввод. Введите сумму и валюту (usd, eur, grn, ron).")
 
         elif len(text) >= TransactionHandler.SPEND.value :  # Учет расходов
-
+            user_tr= UserTr()
             amount_str, currency, *reason = text
             reason = ' '.join(reason) 
 
-            if amount_str.isdigit() and currency.lower() in self.user_tr.get_exchange():
+            if amount_str.isdigit() and user_tr.is_in_exchange_rates(currency.lower()) == True:
 
                 if self.user.get_total() > 0:
+
                     
-                    self.user_tr.create_actual_amount(currency,float(amount_str))
-                    self.user_tr.set_reason(reason)
-                    self.user_tr.set_expence(self.user_tr.get_actual_amount())
+                    
+                    user_tr.create_actual_amount(currency,float(amount_str))
+                    user_tr.set_reason(reason)
+                    user_tr.set_expence(user_tr.get_actual_amount())
                 
-                    self.user.subtract(self.user_tr)
+                    user.subtract(user_tr)
+
+                    user.add_user_tr(user_tr)
                     
-                    await update.message.reply_text(f"{self.user_tr.get_amount()} {self.user_tr.get_currency()} ({self.user_tr.get_actual_amount():.2f} USD) потрачено на {reason}. Остаток на счете: {self.user.get_total():.2f} USD.")
+                    await update.message.reply_text(f"{user_tr.get_amount()} {user_tr.get_currency()} ({user_tr.get_actual_amount():.2f} USD) потрачено на {reason}. Остаток на счете: {user.get_total():.2f} USD.")
                 else:
                     await update.message.reply_text("Недостаточно средств на счете или счет не был пополнен.")
             else:
@@ -96,11 +121,17 @@ class Commands():
     async def balance(self,update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         chat_id = update.message.chat_id
         
+        user= None
+        for i in self._users:
+            if i.get_chat_id() == chat_id:
+                user= i
+                if user.get_total() > 0:
+                    await update.message.reply_text(f"Ваш баланс: {user.get_total()} : USD")   
+                else:
+                    await update.message.reply_text("Ваш баланс пуст. Пожалуйста, пополните счет с помощью команды /deposit.")
+            else:
+                    await update.message.reply_text("Ваш баланс пуст. Пожалуйста, пополните счет с помощью команды /deposit.")
 
-        if self.user.get_total() > 0:
-            await update.message.reply_text(f"Ваш баланс: {self.user.get_total()} : USD")
-        else:
-            await update.message.reply_text("Ваш баланс пуст. Пожалуйста, пополните счет с помощью команды /deposit.")
 
 
     #  Команда /spendings показывающая список растрат
