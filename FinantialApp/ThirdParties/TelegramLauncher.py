@@ -1,4 +1,5 @@
 from Commands.commands import Commands
+import asyncio
 
 
 from telegram.ext import (
@@ -18,6 +19,7 @@ class Telegram():
 
     def __init__(self,token) :
         commands= Commands()
+        
         application = ApplicationBuilder().token(token).build()
         
     
