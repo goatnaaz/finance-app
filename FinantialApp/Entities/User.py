@@ -31,6 +31,19 @@ class User ():
 
     def get_user_transactions(self):
         return self.__user_transactions
+    
+    def is_spend_transactions(self):
+
+        counter= 0
+
+        for i in self.__user_transactions:
+            if i.is_expense():
+                counter +=1
+
+        if counter > 0 :
+            return True 
+        else:
+            return False
 
 
 

@@ -9,8 +9,8 @@ class UserTr():
     __currency= ''
     __actual_amount= 0
     
-    __expences= []
-    __reasons= []
+    __expence= 0
+    __reason= ''
 
     
     _exchange_rates= [Exchange('usd',1.0),Exchange('eur',1.1),Exchange('uah',0.027),Exchange('ron',0.22)]
@@ -38,22 +38,18 @@ class UserTr():
         return self.__currency
     
     def set_expence(self,expence):
-        self.__expences.append(expence)
+        self.__expence= expence
 
-    def get_expences(self):
-        return self.__expences
     
-    def get_expence(self,num):
-        return self.__expences[num]
+    def get_expence(self):
+        return self.__expence
     
     def set_reason(self,reason):
-        self.__reasons.append(reason)
+        self.__reason= reason
 
-    def get_reasons(self):
-        return self.__reasons
+    def get_reason(self):
+        return self.__reason
     
-    def get_reason(self,num):
-        return self.__reasons[num]
 
     def get_actual_amount(self):
         return self.__actual_amount
@@ -65,6 +61,12 @@ class UserTr():
         for i in self._exchange_rates:
             if i.get_name() == currency:
                 self.__actual_amount= self.__amount * i.get_value()
+
+    def is_expense(self):
+        if self.__expence > 0 and len(self.__reason) > 0:
+            return True
+        else:
+            return False
         
 
 
